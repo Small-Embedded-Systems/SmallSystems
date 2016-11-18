@@ -33,62 +33,40 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 
 //Drawing coordinates
-int x = 240, y = 120, dx = 1, dy = 0;
+int x = 240, y = 36, bx = 240, by = 36;
+
 
 
 int main() {
   // Initialise the display
-  screen->fillScreen(WHITE);
-  screen->setTextColor(BLACK, WHITE);
-
-  // Initialise accelerometer and temperature sensor
-  screen->setCursor(2,82);
-  if (accInit(acc)) {
-		screen->printf("Accelerometer initialised");
-	} else {
-    screen->printf("Could not initialise accelerometer");
-  }
+  screen->fillScreen(BLACK);
+	screen->drawRect(0, 0, 480, 272, WHITE);
+	screen->drawRect(0, 0, 480, 20, WHITE);
+  screen->setTextColor(WHITE, BLACK);
   lm75b.open();
   
   //Initialise ticker and install interrupt handler
   Ticker ticktock;
   ticktock.attach(&timerHandler, 1);
   
-  screen->drawCircle(200, 100, 80, BLUE);
-  
   while (true) {
-    potVal = pot.read();
-    tempVal = lm75b.temp();
-    acc.read(accVal[0], accVal[1], accVal[2]);
-
-    screen->setCursor(2,2);
-    screen->printf("Pot = %1.2f, Temp = %03.1f", potVal, tempVal);
-    screen->setCursor(162,2);
-    screen->printf(
-      "Acc = (%05d, %05d, %05d)", accVal[0], accVal[1], accVal[2]); 
-
-    screen->setCursor(2,12);
-    screen->printf("Tick count = %d, x = %d, y = %d", tickCt, x, y);
+		int randX = rand() % 480, randY = rand() % 272, dx = 0;
         
     //draw a moving blob on display - steerable using joystick
-    screen->fillCircle(x, y, 4, WHITE);
-    x += dx;
-    y += dy;
-    screen->fillCircle(x, y, 4, RED);
-    if (jsPrsdAndRlsd(JUP)) {       
-      dx = 0; dy = -1;
-    } else if (jsPrsdAndRlsd(JDN)) {
-      dx = 0; dy = 1;
-    } else if (jsPrsdAndRlsd(JLT)) { // NB response to JS L, R reversed
-      dx = 1; dy = 0;                 //   because JS is upside-down
+    screen->fillCircle(x, y, 4, BLACK);
+		screen->drawRect(x, 260, 40, 5, BLACK);
+		screen->drawRect(x, 260, 40, 5, WHITE);		
+    if (jsPrsdAndRlsd(JLT)) {
+      dx = 1;
     } else if (jsPrsdAndRlsd(JRT)) {
-      dx = -1; dy = 0;
+      dx = -1;
     } else if (jsPrsdAndRlsd(JCR)) {
-      dx = 0; dy = 0;
+      bx = randX, by = randY;
     }
+		x += dx;
 
     wait(0.005); //5 milliseconds
-  }
+  }//End while loop
 }
 
 bool accInit(MMA7455& acc) {
@@ -102,7 +80,7 @@ bool accInit(MMA7455& acc) {
     result = false;
   }
   // screen->printf("MMA7455 initialised\n");
-  return result;
+  return result;aaa
 }
 
 //Definition of timer interrupt handler
@@ -132,3 +110,4 @@ bool jsPrsdAndRlsd(btnId_t b) {
 	savedState[b] = state;
 	return result;
 }
+//LiamMorgan
