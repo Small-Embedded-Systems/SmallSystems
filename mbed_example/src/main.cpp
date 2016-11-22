@@ -33,14 +33,14 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 
 //Drawing coordinates
-int paddleX = 240, paddleY = 36, dx = 0, ballX = 100, ballY = 100, bX = 1, bY = 1;
+int paddleX = 240, paddleY = 260, dx = 0, ballX = 100, ballY = 100, bX = 1, bY = 1, cond = 0;
 
 
 
 int main() {
   // Initialise the display
   screen->fillScreen(BLACK);
-	screen->drawRect(0, 0, 480, 272, WHITE);
+	screen->drawRect(0, 0, 480, 280, WHITE);
 	screen->drawRect(0, 0, 480, 20, WHITE);
   screen->setTextColor(WHITE, BLACK);
   lm75b.open();
@@ -54,39 +54,61 @@ int main() {
 		screen->setCursor(30, 5);
 		screen->printf("RandX: %d, RandY: %d", rand(), rand()); //Draw random number on screen
         
-    screen->drawCircle(ballX, ballY, 4, BLACK);
+    screen->fillCircle(ballX, ballY, 4, BLACK);
 		ballX	+= bX;	//BallDirection
 		ballY += bY;
-		screen->drawCircle(ballX, ballY, 4, WHITE);
-		screen->drawRect(paddleX, 260, 40, 5, BLACK);
+		screen->fillCircle(ballX, ballY, 4, BLUE);
+		screen->drawRect(paddleX, paddleY, 40, 5, BLACK);
 		paddleX += dx; //PaddleDirection
-		screen->drawRect(paddleX, 260, 40, 5, WHITE);	
+		screen->drawRect(paddleX, paddleY, 40, 5, WHITE);	
 		
 		if(paddleX <= 1 || paddleX >=  439) {
 			dx = 0;
 		}
-		if(ballY >= 272) {
-			bY = -1;
-		} else if (ballY <= 0) {
-			bY = 1;
-		}  else if (ballX <= 0) {
-			bX = 1;
-		}  else if (ballX >= 480) {
-			bX = -1;
-		} 
 		
-    if (jsPrsdAndRlsd(JLT)) {
+		if (ballY <= 26) {
+			bY = 1;
+		} else if (ballX <= 6) {
+			bX = 1;
+		} else if (ballX >= 474) {
+			bX = -1;
+		}
+			
+		if (ballY >= paddleY && ballX <= (paddleX+45) && ballX >= (paddleX-5)) { //Paddle collision
+			bY = -1;
+		}
+		if (ballY >= 275) {
+			screen->fillCircle(ballX, ballY, 4, BLACK);
+			while(cond == 0) {
+				if(jsPrsdAndRlsd(JCR)) {
+					cond++;
+					ballX = 100, ballY = 70;
+				} else if (ballY < 260) {
+					cond--;
+				}
+			}
+		}
+		
+    if (jsPrsdAndRlsd(JLT)) { //Joystick controls
       dx = 1;
     } else if (jsPrsdAndRlsd(JRT)) {
       dx = -1;
     } else if (jsPrsdAndRlsd(JCR)) {
-			int randX = rand() % 480, randY = rand() % 30;
+			screen->fillCircle(ballX, ballY, 4, BLACK);
+			ballX = 100, ballY = 70;
+			screen->fillCircle(ballX, ballY, 4, BLUE);
     }
 		
+		if(paddleX >= 440) {
+			dx = 0; paddleX = 439;
+		} else if(paddleX <= 0) {
+			dx = 0; paddleX = 1;
+		}
 		
-    wait(0.005); //5 milliseconds
-  }//End while loop
 }
+		
+    wait(0.0005); //5 milliseconds
+  }//End while loop
 
 bool accInit(MMA7455& acc) {
   bool result = true;
