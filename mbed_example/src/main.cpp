@@ -33,7 +33,7 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 
 //Drawing coordinates
-int x = 240, y = 36, bx = 240, by = 36;
+int paddleX = 240, paddleY = 36, dx = 0, ballX = 100, ballY = 100, bX = 1, bY = 1;
 
 
 
@@ -50,21 +50,31 @@ int main() {
   ticktock.attach(&timerHandler, 1);
   
   while (true) {
-		int randX = rand() % 480, randY = rand() % 272, dx = 0;
+		
+		screen->setCursor(30, 5);
+		screen->printf("RandX: %d, RandY: %d", rand(), rand()); //Draw random number on screen
         
-    //draw a moving blob on display - steerable using joystick
-    screen->fillCircle(x, y, 4, BLACK);
-		screen->drawRect(x, 260, 40, 5, BLACK);
-		screen->drawRect(x, 260, 40, 5, WHITE);		
+    screen->drawCircle(ballX, ballY, 4, BLACK);
+		ballX	+= bX;	//BallDirection
+		ballY += bY;
+		screen->drawCircle(ballX, ballY, 4, WHITE);
+		screen->drawRect(paddleX, 260, 40, 5, BLACK);
+		paddleX += dx; //PaddleDirection
+		screen->drawRect(paddleX, 260, 40, 5, WHITE);	
+		
+		if(paddleX <= 1 || paddleX >=  439) {
+			dx = 0;
+		}
+		
     if (jsPrsdAndRlsd(JLT)) {
       dx = 1;
     } else if (jsPrsdAndRlsd(JRT)) {
       dx = -1;
     } else if (jsPrsdAndRlsd(JCR)) {
-      bx = randX, by = randY;
+			int randX = rand() % 480, randY = rand() % 30;
     }
-		x += dx;
-
+		
+		
     wait(0.005); //5 milliseconds
   }//End while loop
 }
@@ -80,7 +90,7 @@ bool accInit(MMA7455& acc) {
     result = false;
   }
   // screen->printf("MMA7455 initialised\n");
-  return result;aaa
+  return result;
 }
 
 //Definition of timer interrupt handler
