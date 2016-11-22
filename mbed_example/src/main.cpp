@@ -33,8 +33,7 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 
 //Drawing coordinates
-int x = 240, y = 36, dx = 1, dy = 1;
-int randX = rand() % 480, randY = rand() % 30;
+int paddleX = 240, paddleY = 36, dx = 0, ballX = 100, ballY = 100, bX = 1, bY = 1;
 
 
 
@@ -52,16 +51,30 @@ int main() {
   
   while (true) {
 		
-		screen->setCursor(30, 50);
-		screen->printf("RandX: %d, RandY: %d", randX, randY); //Draw random number on screen
+		screen->setCursor(30, 5);
+		screen->printf("RandX: %d, RandY: %d", rand(), rand()); //Draw random number on screen
         
-    screen->drawCircle(randX, (randY + 30), 4, BLACK);
-		randX	+= dx;	//BallDirection
-		randY += dy;
-		screen->drawCircle(randX, (randY + 30), 4, WHITE);
-		screen->drawRect(x, 260, 40, 5, BLACK);
-		x += dx; //PaddleDirection
-		screen->drawRect(x, 260, 40, 5, WHITE);		
+    screen->drawCircle(ballX, ballY, 4, BLACK);
+		ballX	+= bX;	//BallDirection
+		ballY += bY;
+		screen->drawCircle(ballX, ballY, 4, WHITE);
+		screen->drawRect(paddleX, 260, 40, 5, BLACK);
+		paddleX += dx; //PaddleDirection
+		screen->drawRect(paddleX, 260, 40, 5, WHITE);	
+		
+		if(paddleX <= 1 || paddleX >=  439) {
+			dx = 0;
+		}
+		if(ballY >= 272) {
+			bY = -1;
+		} else if (ballY <= 0) {
+			bY = 1;
+		}  else if (ballX <= 0) {
+			bX = 1;
+		}  else if (ballX >= 480) {
+			bX = -1;
+		} 
+		
     if (jsPrsdAndRlsd(JLT)) {
       dx = 1;
     } else if (jsPrsdAndRlsd(JRT)) {
@@ -69,6 +82,8 @@ int main() {
     } else if (jsPrsdAndRlsd(JCR)) {
 			int randX = rand() % 480, randY = rand() % 30;
     }
+		
+		
     wait(0.005); //5 milliseconds
   }//End while loop
 }
