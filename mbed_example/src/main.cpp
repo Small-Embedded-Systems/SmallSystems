@@ -31,18 +31,25 @@ Display *screen = Display::theDisplay();
 //Timer interrupt and handler
 void timerHandler(); //prototype of handler function
 int tickCt = 0;
-
+/************************************************************************/
 //Drawing coordinates
-int paddleX = 240, paddleY = 260, dx = 0, ballX = 100, ballY = 100, bX = 1, bY = 1, cond = 0;
-
-
+int paddleX = 240, paddleY = 260, cond = 0;
+int bX, bY = 1, ballX, ballY, randX, randBool, dx = 0;
 
 int main() {
+	srand(time(0)); randX = (rand() % 460) + 10; //Initialise random no between 10-47
+	ballX = randX; ballY = 30 + (rand() % 40);
+	randBool = rand() % 2; // 0 or 1
+	if(randBool == 0) {
+		bX = 1;
+	} else {
+		bX = -1;
+	}
   // Initialise the display
-  screen->fillScreen(BLACK);
-	screen->drawRect(0, 0, 480, 280, WHITE);
-	screen->drawRect(0, 0, 480, 20, WHITE);
-  screen->setTextColor(WHITE, BLACK);
+  screen->fillScreen(WHITE);
+	screen->drawRect(0, 0, 480, 280, BLACK);	
+	screen->drawRect(0, 0, 480, 20, BLACK);
+  screen->setTextColor(BLACK, WHITE);
   lm75b.open();
   
   //Initialise ticker and install interrupt handler
@@ -52,19 +59,15 @@ int main() {
   while (true) {
 		
 		screen->setCursor(30, 5);
-		screen->printf("RandX: %d, RandY: %d", rand(), rand()); //Draw random number on screen
+		screen->printf("RandNo = %d, randBool = %d", randX, randBool); //Draw random number on screen
         
-    screen->fillCircle(ballX, ballY, 4, BLACK);
+    screen->fillCircle(ballX, ballY, 4, WHITE);
 		ballX	+= bX;	//BallDirection
 		ballY += bY;
 		screen->fillCircle(ballX, ballY, 4, BLUE);
-		screen->drawRect(paddleX, paddleY, 40, 5, BLACK);
+		screen->fillRect(paddleX, paddleY, 200, 4, WHITE);
 		paddleX += dx; //PaddleDirection
-		screen->drawRect(paddleX, paddleY, 40, 5, WHITE);	
-		
-		if(paddleX <= 1 || paddleX >=  439) {
-			dx = 0;
-		}
+		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);	
 		
 		if (ballY <= 26) {
 			bY = 1;
@@ -77,16 +80,19 @@ int main() {
 		if (ballY >= paddleY && ballX <= (paddleX+45) && ballX >= (paddleX-5)) { //Paddle collision
 			bY = -1;
 		}
-		if (ballY >= 275) {
-			screen->fillCircle(ballX, ballY, 4, BLACK);
+		if (ballY >= 277) {
+			screen->fillCircle(ballX, ballY, 4, WHITE);
 			while(cond == 0) {
-				if(jsPrsdAndRlsd(JCR)) {
-					cond++;
-					ballX = 100, ballY = 70;
-				} else if (ballY < 260) {
-					cond--;
+				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed
+					cond = 1;
+					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;					
+					screen->fillRect(paddleX, paddleY, 40, 5, WHITE); //Reset paddle
+					paddleX = 240, dx = 0;
 				}
 			}
+				//if (ballY < 260) {
+				cond = 0;
+				//}
 		}
 		
     if (jsPrsdAndRlsd(JLT)) { //Joystick controls
@@ -94,9 +100,14 @@ int main() {
     } else if (jsPrsdAndRlsd(JRT)) {
       dx = -1;
     } else if (jsPrsdAndRlsd(JCR)) {
-			screen->fillCircle(ballX, ballY, 4, BLACK);
-			ballX = 100, ballY = 70;
-			screen->fillCircle(ballX, ballY, 4, BLUE);
+				screen->fillCircle(ballX, ballY, 4, WHITE);
+				ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;				
+				randBool = rand() % 2; // 0 or 1
+				if(randBool == 0) {
+					bX = 1;
+				} else {
+					bX = -1;
+				}
     }
 		
 		if(paddleX >= 440) {
@@ -106,7 +117,7 @@ int main() {
 		}
 		
 }
-		
+	/********************************************************************************/	
     wait(0.0005); //5 milliseconds
   }//End while loop
 
