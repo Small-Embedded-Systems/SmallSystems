@@ -6,7 +6,7 @@
 //Declare output object for LED1
 DigitalOut led1(LED1);
 
-// Initialise Joystick   
+// Initialise Joystick	 
 typedef enum {JLT = 0, JRT, JUP, JDN, JCR} btnId_t;
 static DigitalIn jsBtns[] = {P5_0, P5_4, P5_2, P5_1, P5_3}; // LFT, RGHT, UP, DWN, CTR
 bool jsPrsdAndRlsd(btnId_t b);
@@ -14,7 +14,7 @@ bool jsPrsdAndRlsd(btnId_t b);
 //Input object for the potentiometer
 AnalogIn pot(p15);
 float potVal = 0.0;
-  
+	
 //Object to manage the accelerometer
 MMA7455 acc(P0_27, P0_28);
 bool accInit(MMA7455& acc); //prototype of init routine
@@ -25,16 +25,16 @@ LM75B lm75b(P0_27, P0_28, LM75B::ADDRESS_1);
 float tempVal = 0.0;
 
 Display *screen = Display::theDisplay();
-    //This is how you call a static method of class Display
-    //Returns a pointer to an object that manages the display screen 
+		//This is how you call a static method of class Display
+		//Returns a pointer to an object that manages the display screen 
 
 //Timer interrupt and handler
 void timerHandler(); //prototype of handler function
 int tickCt = 0;
-/************************************************************************/
+/*************************************************************************/
 //Drawing coordinates
-int paddleX = 240, paddleY = 260, cond = 0;
-int bX, bY = 1, ballX, ballY, randX, randBool, dx = 0;
+int paddleX=240, paddleY=262, cond=0, bX, bY=1, ballX, ballY, randX, randBool,
+	dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount = 0;
 
 int main() {
 	srand(time(0)); randX = (rand() % 460) + 10; //Initialise random no between 10-47
@@ -45,32 +45,40 @@ int main() {
 	} else {
 		bX = -1;
 	}
-  // Initialise the display
-  screen->fillScreen(WHITE);
+	// Initialise the display
+	screen->fillScreen(WHITE);
 	screen->drawRect(0, 0, 480, 280, BLACK);	
 	screen->drawRect(0, 0, 480, 20, BLACK);
-  screen->setTextColor(BLACK, WHITE);
-  lm75b.open();
-  
-  //Initialise ticker and install interrupt handler
-  Ticker ticktock;
-  ticktock.attach(&timerHandler, 1);
-  
-  while (true) {
+	screen->setTextColor(BLACK, WHITE);
+	lm75b.open();
+	
+	//Initialise ticker and install interrupt handler
+	Ticker ticktock;
+	ticktock.attach(&timerHandler, 1);
+	
+	while (true) {
 		
-		screen->setCursor(30, 5);
-		screen->printf("RandNo = %d, randBool = %d", randX, randBool); //Draw random number on screen
-        
-    screen->fillCircle(ballX, ballY, 4, WHITE);
+		screen->setCursor(20, 7);
+		screen->printf("Lives: %d", ballsLeft); //Draw info
+		screen->setCursor(410, 7);
+		screen->printf("Total: %d", score);
+		
+		screen->fillCircle(ballX, ballY, 5, WHITE);
 		ballX	+= bX;	//BallDirection
 		ballY += bY;
-		screen->fillCircle(ballX, ballY, 4, BLUE);
-		screen->fillRect(paddleX, paddleY, 200, 4, WHITE);
+		screen->fillCircle(ballX, ballY, 5, BLUE);
+		
+		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);
 		paddleX += dx; //PaddleDirection
 		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);	
 		
 		if (ballY <= 26) {
+			if(bounceCount % 5 == 0 && score != 0) {
+				scoreIncrement++;
+			}
+			bounceCount++;
 			bY = 1;
+			score += scoreIncrement;
 		} else if (ballX <= 6) {
 			bX = 1;
 		} else if (ballX >= 474) {
@@ -81,6 +89,8 @@ int main() {
 			bY = -1;
 		}
 		if (ballY >= 277) {
+			ballsLeft--;
+			bounceCount = 0;
 			screen->fillCircle(ballX, ballY, 4, WHITE);
 			while(cond == 0) {
 				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed
@@ -89,56 +99,55 @@ int main() {
 					screen->fillRect(paddleX, paddleY, 40, 5, WHITE); //Reset paddle
 					paddleX = 240, dx = 0;
 				}
+				if(ballsLeft <= 0) {
+					screen->setCursor(20, 7);
+					screen->printf("Lives: %d", ballsLeft);
+					while(true) {
+						screen->setCursor(110, 60);
+						screen->printf("Total: %d", score);
+						screen->setCursor(110, 120);
+						screen->setTextSize(5);
+						screen->printf("GAME OVER");
+					}
+				}
 			}
-				//if (ballY < 260) {
 				cond = 0;
-				//}
 		}
 		
-    if (jsPrsdAndRlsd(JLT)) { //Joystick controls
-      dx = 1;
-    } else if (jsPrsdAndRlsd(JRT)) {
-      dx = -1;
-    } else if (jsPrsdAndRlsd(JCR)) {
-				screen->fillCircle(ballX, ballY, 4, WHITE);
-				ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;				
-				randBool = rand() % 2; // 0 or 1
-				if(randBool == 0) {
-					bX = 1;
-				} else {
-					bX = -1;
-				}
-    }
+		if (jsPrsdAndRlsd(JLT)) { //Joystick controls
+			dx = 1;
+		} else if (jsPrsdAndRlsd(JRT)) {
+			dx = -1;
+		}
 		
 		if(paddleX >= 440) {
 			dx = 0; paddleX = 439;
 		} else if(paddleX <= 0) {
 			dx = 0; paddleX = 1;
 		}
-		
-}
+		wait(0.005);		
+}//End loop
 	/********************************************************************************/	
-    wait(0.0005); //5 milliseconds
-  }//End while loop
+}//End main
 
 bool accInit(MMA7455& acc) {
-  bool result = true;
-  if (!acc.setMode(MMA7455::ModeMeasurement)) {
-    // screen->printf("Unable to set mode for MMA7455!\n");
-    result = false;
-  }
-  if (!acc.calibrate()) {
-    // screen->printf("Failed to calibrate MMA7455!\n");
-    result = false;
-  }
-  // screen->printf("MMA7455 initialised\n");
-  return result;
+	bool result = true;
+	if (!acc.setMode(MMA7455::ModeMeasurement)) {
+		// screen->printf("Unable to set mode for MMA7455!\n");
+		result = false;
+	}
+	if (!acc.calibrate()) {
+		// screen->printf("Failed to calibrate MMA7455!\n");
+		result = false;
+	}
+	// screen->printf("MMA7455 initialised\n");
+	return result;
 }
 
 //Definition of timer interrupt handler
 void timerHandler() {
-  tickCt++;
-  led1 = !led1; //every tick, toggle led1
+	tickCt++;
+	led1 = !led1; //every tick, toggle led1
 }
 
 /* Definition of Joystick press capture function
@@ -154,9 +163,9 @@ bool jsPrsdAndRlsd(btnId_t b) {
 	bool result = false;
 	uint32_t state;
 	static uint32_t savedState[4] = {1,1,1,1};
-        //initially all 1s: nothing pressed
+				//initially all 1s: nothing pressed
 	state = jsBtns[b].read();
-  if ((savedState[b] == 0) && (state == 1)) {
+	if ((savedState[b] == 0) && (state == 1)) {
 		result = true;
 	}
 	savedState[b] = state;
