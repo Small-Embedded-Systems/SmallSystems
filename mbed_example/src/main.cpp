@@ -33,7 +33,7 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 /*************************************************************************/
 //Drawing coordinates
-int paddleY=262, cond=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, gameStart=0,
+int paddleY=262, cond=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, gameState=0,
 	paddleX, bX, ballX, ballY, randX, randBool;
 
 int main() {
@@ -59,7 +59,7 @@ int main() {
 	ticktock.attach(&timerHandler, 1);
 	
 	while (true) {
-		
+		gameState = 0;
 		screen->setCursor(20, 7);
 		screen->printf("Lives: %d", ballsLeft); //Draw info
 		screen->setCursor(410, 7);
@@ -72,7 +72,7 @@ int main() {
 
 		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);
 		paddleX += dx; //PaddleDirection
-		screen->fillRect(paddleX-1, paddleY, 40, 4, BLACK);	
+		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);	
 		
 		if (ballY <= 26) {
 			if(bounceCount % 5 == 0 && score != 0) {
@@ -83,7 +83,7 @@ int main() {
 			bY = 1;
 		} else if (ballX <= 6) {
 			bX = 1;
-		} else if (ballX >= 474) {
+		} else if (ballX >= 472) {
 			bX = -1;
 		}
 			
@@ -93,45 +93,51 @@ int main() {
 		if (ballY >= 277) {
 			screen->fillCircle(ballX, ballY, 4, WHITE);
 			while(cond == 0) {
-				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed
-					cond = 1;
+				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed					
 					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;					
 					screen->fillRect(paddleX, paddleY, 40, 5, WHITE); //Reset paddle
 					paddleX = 240, dx = 0;
 					ballsLeft--;
 					bounceCount = 0;
 					scoreIncrement = 1;
+					cond = 1;
 				}
 				if(ballsLeft <= 0) {
 					screen->setCursor(20, 7);
 					screen->printf("Lives: %d", ballsLeft);
-					while(true) {
-						screen->setCursor(110, 60);
-						screen->printf("Total:%d", score);
-						screen->setCursor(110, 120);
-						screen->setTextSize(5);
-						screen->printf("GAME OVER");
+					while(gameState==0) {
+						if(jsPrsdAndRlsd(JCR)) {
+						score=0;scoreIncrement=1;bounceCount=0;ballsLeft=5;
+						ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;	
+						paddleX = (rand() % 460) + 10; dx = 0; //Random paddle spawn loc
+						//Reset pos
+						screen->fillRect(paddleX, paddleY, 40, 5, BLACK);
+						screen->fillCircle(ballX, ballY, 4, BLUE);
+						//Clear screen to default 						
+						gameState=1; //Return to game
+						}					
 					}
 				}
 			}
-				cond = 0;
 		}
+				cond = 0;
 		
-		if (jsPrsdAndRlsd(JLT)) { //Joystick controls
-			dx = 1;
-		} else if (jsPrsdAndRlsd(JRT)) {
-			dx = -1;
+		if (jsPrsdAndRlsd(JLT)) { 
+			dx = 2;
+		} else if (jsPrsdAndRlsd(JRT)) { //Joystick paddle movement
+			dx = -2;
 		}
 		
 		if(paddleX >= 440) {
 			dx = 0; paddleX = 439;
-		} else if(paddleX <= 0) {
+		} else if(paddleX <= 0) { //Fixes wall collision
 			dx = 0; paddleX = 1;
 		}
-		wait(0.005);		
-}//End loop
-	/********************************************************************************/	
+		
+		wait(0.005);	
+	}//End loop
 }//End main
+	/********************************************************************************/	
 
 bool accInit(MMA7455& acc) {
 	bool result = true;
