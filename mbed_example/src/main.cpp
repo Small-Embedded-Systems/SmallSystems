@@ -33,18 +33,20 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 /*************************************************************************/
 //Drawing coordinates
-int paddleX=240, paddleY=262, cond=0, bX, bY=1, ballX, ballY, randX, randBool,
-	dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount = 0;
+int paddleY=262, cond=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, gameStart=0,
+	paddleX, bX, ballX, ballY, randX, randBool;
 
 int main() {
-	srand(time(0)); randX = (rand() % 460) + 10; //Initialise random no between 10-47
-	ballX = randX; ballY = 30 + (rand() % 40);
+	srand(time(0)); //Give ball random spawn loc baed on time
+	ballX = (rand() % 460) + 10; //Initialise random no between 10-470
+	ballY = 30 + (rand() % 40); 
 	randBool = rand() % 2; // 0 or 1
-	if(randBool == 0) {
+	if(randBool == 0) { //Random spawn dir for ball
 		bX = 1;
 	} else {
 		bX = -1;
 	}
+	paddleX = (rand() % 460) + 10; //Random paddle spawn loc
 	// Initialise the display
 	screen->fillScreen(WHITE);
 	screen->drawRect(0, 0, 480, 280, BLACK);	
@@ -67,18 +69,18 @@ int main() {
 		ballX	+= bX;	//BallDirection
 		ballY += bY;
 		screen->fillCircle(ballX, ballY, 5, BLUE);
-		
+
 		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);
 		paddleX += dx; //PaddleDirection
-		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);	
+		screen->fillRect(paddleX-1, paddleY, 40, 4, BLACK);	
 		
 		if (ballY <= 26) {
 			if(bounceCount % 5 == 0 && score != 0) {
-				scoreIncrement++;
+				scoreIncrement++; // If ball bounces 5 times on rally, score increment increases
 			}
 			bounceCount++;
+			score += scoreIncrement; //Score goes up by the increment			
 			bY = 1;
-			score += scoreIncrement;
 		} else if (ballX <= 6) {
 			bX = 1;
 		} else if (ballX >= 474) {
@@ -89,8 +91,6 @@ int main() {
 			bY = -1;
 		}
 		if (ballY >= 277) {
-			ballsLeft--;
-			bounceCount = 0;
 			screen->fillCircle(ballX, ballY, 4, WHITE);
 			while(cond == 0) {
 				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed
@@ -98,13 +98,16 @@ int main() {
 					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;					
 					screen->fillRect(paddleX, paddleY, 40, 5, WHITE); //Reset paddle
 					paddleX = 240, dx = 0;
+					ballsLeft--;
+					bounceCount = 0;
+					scoreIncrement = 1;
 				}
 				if(ballsLeft <= 0) {
 					screen->setCursor(20, 7);
 					screen->printf("Lives: %d", ballsLeft);
 					while(true) {
 						screen->setCursor(110, 60);
-						screen->printf("Total: %d", score);
+						screen->printf("Total:%d", score);
 						screen->setCursor(110, 120);
 						screen->setTextSize(5);
 						screen->printf("GAME OVER");
