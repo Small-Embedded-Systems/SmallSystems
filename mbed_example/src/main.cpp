@@ -87,7 +87,7 @@ int main() {
 			bX = -1;
 		}
 			
-		if (ballY >= paddleY && ballX <= (paddleX+45) && ballX >= (paddleX-5)) { //Paddle collision
+		if (ballY >= paddleY+1 && ballX <= (paddleX+45) && ballX >= (paddleX-5)) { //Paddle collision
 			bY = -1;
 		}
 		if (ballY >= 277) {
@@ -95,7 +95,6 @@ int main() {
 			while(cond == 0) {
 				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed					
 					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;					
-					screen->fillRect(paddleX, paddleY, 40, 5, WHITE); //Reset paddle
 					paddleX = 240, dx = 0;
 					ballsLeft--;
 					bounceCount = 0;
@@ -110,10 +109,7 @@ int main() {
 						score=0;scoreIncrement=1;bounceCount=0;ballsLeft=5;
 						ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;	
 						paddleX = (rand() % 460) + 10; dx = 0; //Random paddle spawn loc
-						//Reset pos
-						screen->fillRect(paddleX, paddleY, 40, 5, BLACK);
-						screen->fillCircle(ballX, ballY, 4, BLUE);
-						//Clear screen to default 						
+						//Reset pos						
 						gameState=1; //Return to game
 						}					
 					}
@@ -134,7 +130,7 @@ int main() {
 			dx = 0; paddleX = 1;
 		}
 		
-		wait(0.005);	
+		wait(0.006);	
 	}//End loop
 }//End main
 	/********************************************************************************/	
