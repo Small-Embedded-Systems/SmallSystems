@@ -34,12 +34,13 @@ int tickCt = 0;
 /*************************************************************************/
 //Drawing coordinates
 int paddleY=262, paused=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, condition=0, gameStart=0,
-	paddleX, bX, ballX, ballY, randX, randBool, objX, objY, objWid;
+	paddleX, bX, ballX, ballY, randX, randBool, objX, objY, objWid, randMagicInt, randMagicDur;
 
 int main() {
 	srand(time(0)); //Give ball random spawn loc based on time
 	ballX = (rand() % 460) + 10;ballY = 30 + (rand() % 40); //Initialise random no between 10-470
 	randBool = rand() % 2; // 0 or 1
+	randMagicInt = (rand() % 5) + 5; randMagicDur = (rand() % 8) + 2; //Time interval between magic time and rand duration
 	if(randBool == 0) { //Random spawn dir for ball
 		bX = 1;
 	} else {
@@ -59,6 +60,15 @@ int main() {
 	ticktock.attach(&timerHandler, 1);
 	
 	while (true) {
+		clock_t start = clock(), diff;
+		//Thing to do here();
+		diff = clock() - start;
+		int msec = diff * 1000 / CLOCKS_PER_SEC;
+		screen->setCursor(20, 50);
+		printf("Time taken %d seconds %d milliseconds", msec/1000, msec%1000);
+		
+		
+		
 		screen->setCursor(20, 7);
 		screen->printf("Lives: %d   ", ballsLeft); //Draw info
 		screen->setCursor(380, 7);
