@@ -33,11 +33,11 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 /*************************************************************************/
 //Drawing coordinates
-int paddleY=262, cond=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, gameState=0,
+int paddleY=262, paused=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, condition=0,
 	paddleX, bX, ballX, ballY, randX, randBool;
 
 int main() {
-	srand(time(0)); //Give ball random spawn loc baed on time
+	srand(time(0)); //Give ball random spawn loc based on time
 	ballX = (rand() % 460) + 10; //Initialise random no between 10-470
 	ballY = 30 + (rand() % 40); 
 	randBool = rand() % 2; // 0 or 1
@@ -59,25 +59,27 @@ int main() {
 	ticktock.attach(&timerHandler, 1);
 	
 	while (true) {
-		gameState = 0;
 		screen->setCursor(20, 7);
-		screen->printf("Lives: %d", ballsLeft); //Draw info
+		screen->printf("Lives: %d     ", ballsLeft); //Draw info
 		screen->setCursor(410, 7);
-		screen->printf("Total: %d", score);
+		screen->printf("Total: %d     ", score);
+		screen->setCursor(20, 30);
 		
-		screen->fillCircle(ballX, ballY, 5, WHITE);
+		screen->fillCircle(ballX, ballY, 5, WHITE); //Draw ball
 		ballX	+= bX;	//BallDirection
 		ballY += bY;
 		screen->fillCircle(ballX, ballY, 5, BLUE);
 
-		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);
+		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);//Draw paddle
 		paddleX += dx; //PaddleDirection
+		//paddleX=ballX-20;
 		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);	
 		
-		if (ballY <= 26) {
-			if(bounceCount % 5 == 0 && score != 0) {
+		if (ballY <= 29) { //If ball hits roof
+			if(bounceCount % 5 == 0 && condition == 1) {
 				scoreIncrement++; // If ball bounces 5 times on rally, score increment increases
 			}
+			condition=1;
 			bounceCount++;
 			score += scoreIncrement; //Score goes up by the increment			
 			bY = 1;
@@ -87,36 +89,40 @@ int main() {
 			bX = -1;
 		}
 			
-		if (ballY >= paddleY+1 && ballX <= (paddleX+45) && ballX >= (paddleX-5)) { //Paddle collision
+		if (ballY >= paddleY && ballX <= (paddleX+43) && ballX >= (paddleX-3)) { //Paddle collision
 			bY = -1;
 		}
-		if (ballY >= 277) {
+		
+		if (ballY >= 277) { //If balls falls off screen
+			paused = 1;
 			screen->fillCircle(ballX, ballY, 4, WHITE);
-			while(cond == 0) {
+			screen->fillRect(paddleX, paddleY, 40, 4, WHITE);				
+			if (ballsLeft <= 0) { //Reset game
+					if(jsPrsdAndRlsd(JCR)) {
+						paused = 0;
+						score=0;scoreIncrement=1;bounceCount=0;						
+						ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;//Random ball spawn loc							
+						paddleX = (rand() % 460) + 10; dx = 0; //Random paddle spawn loc
+						ballsLeft=5;
+						screen->setCursor(20, 7);
+						screen->printf("Lives: %d  ", ballsLeft); //Redraw info
+						screen->setCursor(410, 7);
+						screen->printf("Total: %d          ", score);						
+					}
+			}
+			while(paused == 1 && ballsLeft != 0) {
 				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed					
-					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;					
-					paddleX = 240, dx = 0;
+					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;	
+					paddleX = (rand() % 460) + 10; dx = 0;					
 					ballsLeft--;
+					condition = 0;
 					bounceCount = 0;
 					scoreIncrement = 1;
-					cond = 1;
-				}
-				if(ballsLeft <= 0) {
-					screen->setCursor(20, 7);
-					screen->printf("Lives: %d", ballsLeft);
-					while(gameState==0) {
-						if(jsPrsdAndRlsd(JCR)) {
-						score=0;scoreIncrement=1;bounceCount=0;ballsLeft=5;
-						ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;	
-						paddleX = (rand() % 460) + 10; dx = 0; //Random paddle spawn loc
-						//Reset pos						
-						gameState=1; //Return to game
-						}					
-					}
+					paused = 0;
 				}
 			}
 		}
-				cond = 0;
+		paused = 0;
 		
 		if (jsPrsdAndRlsd(JLT)) { 
 			dx = 2;
@@ -130,7 +136,7 @@ int main() {
 			dx = 0; paddleX = 1;
 		}
 		
-		wait(0.006);	
+		wait(0.005);	
 	}//End loop
 }//End main
 	/********************************************************************************/	
