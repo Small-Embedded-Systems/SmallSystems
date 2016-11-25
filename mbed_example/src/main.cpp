@@ -33,24 +33,24 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 /*************************************************************************/
 //Drawing coordinates
-int paddleY=262, paused=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, condition=0,
-	paddleX, bX, ballX, ballY, randX, randBool;
+int paddleY=262, paused=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, condition=0, gameStart=0,
+	paddleX, bX, ballX, ballY, randX, randBool, objX, objY, objWid;
 
 int main() {
 	srand(time(0)); //Give ball random spawn loc based on time
-	ballX = (rand() % 460) + 10; //Initialise random no between 10-470
-	ballY = 30 + (rand() % 40); 
+	ballX = (rand() % 460) + 10;ballY = 30 + (rand() % 40); //Initialise random no between 10-470
 	randBool = rand() % 2; // 0 or 1
 	if(randBool == 0) { //Random spawn dir for ball
 		bX = 1;
 	} else {
 		bX = -1;
 	}
+	objX = (rand() % 370) + 10; objY = (rand() % 40) + 75; objWid = (rand() % 160) + 40; //Object dimensions
 	paddleX = (rand() % 460) + 10; //Random paddle spawn loc
 	// Initialise the display
 	screen->fillScreen(WHITE);
-	screen->drawRect(0, 0, 480, 280, BLACK);	
-	screen->drawRect(0, 0, 480, 20, BLACK);
+	screen->drawRect(0, 0, 480, 280, RED);	
+	screen->drawRect(0, 0, 480, 20, RED);
 	screen->setTextColor(BLACK, WHITE);
 	lm75b.open();
 	
@@ -60,10 +60,16 @@ int main() {
 	
 	while (true) {
 		screen->setCursor(20, 7);
-		screen->printf("Lives: %d     ", ballsLeft); //Draw info
-		screen->setCursor(410, 7);
-		screen->printf("Total: %d     ", score);
-		screen->setCursor(20, 30);
+		screen->printf("Lives: %d   ", ballsLeft); //Draw info
+		screen->setCursor(380, 7);
+		screen->printf("Total: %d       ", score);
+		if(gameStart==0) { //Gamestart on cntr press
+			while(gameStart==0) {
+				if(jsPrsdAndRlsd(JCR)) {
+					gameStart=1;
+				}
+			}
+		}
 		
 		screen->fillCircle(ballX, ballY, 5, WHITE); //Draw ball
 		ballX	+= bX;	//BallDirection
@@ -72,8 +78,10 @@ int main() {
 
 		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);//Draw paddle
 		paddleX += dx; //PaddleDirection
-		//paddleX=ballX-20;
+		//paddleX=ballX-20;//Cheats
 		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);	
+		
+		screen->fillRect(objX, objY, objWid, 2, GREEN);
 		
 		if (ballY <= 29) { //If ball hits roof
 			if(bounceCount % 5 == 0 && condition == 1) {
@@ -91,15 +99,19 @@ int main() {
 			
 		if (ballY >= paddleY && ballX <= (paddleX+43) && ballX >= (paddleX-3)) { //Paddle collision
 			bY = -1;
+		} else if ((ballY == objY || ballY == objY) && ballX <= (objX+objWid) && ballX >= (objX-3)) { //Object collision
+			bY = bY*-1;
 		}
 		
 		if (ballY >= 277) { //If balls falls off screen
 			paused = 1;
 			screen->fillCircle(ballX, ballY, 4, WHITE);
-			screen->fillRect(paddleX, paddleY, 40, 4, WHITE);				
+			screen->fillRect(paddleX, paddleY, 40, 4, WHITE);
+			screen->fillRect(objX, objY, objWid, 2, WHITE);
 			if (ballsLeft <= 0) { //Reset game
 					if(jsPrsdAndRlsd(JCR)) {
 						paused = 0;
+						condition = 0;
 						score=0;scoreIncrement=1;bounceCount=0;						
 						ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;//Random ball spawn loc							
 						paddleX = (rand() % 460) + 10; dx = 0; //Random paddle spawn loc
@@ -107,11 +119,12 @@ int main() {
 						screen->setCursor(20, 7);
 						screen->printf("Lives: %d  ", ballsLeft); //Redraw info
 						screen->setCursor(410, 7);
-						screen->printf("Total: %d          ", score);						
+						screen->printf("Total: %d     ", score);						
 					}
 			}
-			while(paused == 1 && ballsLeft != 0) {
-				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed					
+			while(paused == 1 && ballsLeft != 0) { //If balls goes out of play with lives left
+				if(jsPrsdAndRlsd(JCR)) { //Center stick pressed
+					objX = (rand() % 370) + 10; objY = (rand() % 40) + 75; objWid = (rand() % 160) + 40;					
 					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;	
 					paddleX = (rand() % 460) + 10; dx = 0;					
 					ballsLeft--;
