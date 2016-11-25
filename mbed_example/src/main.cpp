@@ -60,15 +60,6 @@ int main() {
 	ticktock.attach(&timerHandler, 1);
 	
 	while (true) {
-		clock_t start = clock(), diff;
-		//Thing to do here();
-		diff = clock() - start;
-		int msec = diff * 1000 / CLOCKS_PER_SEC;
-		screen->setCursor(20, 50);
-		printf("Time taken %d seconds %d milliseconds", msec/1000, msec%1000);
-		
-		
-		
 		screen->setCursor(20, 7);
 		screen->printf("Lives: %d   ", ballsLeft); //Draw info
 		screen->setCursor(380, 7);
@@ -89,7 +80,7 @@ int main() {
 		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);//Draw paddle
 		paddleX += dx; //PaddleDirection
 		//paddleX=ballX-20;//Cheats
-		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);	
+		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);
 		
 		screen->fillRect(objX, objY, objWid, 2, GREEN);
 		
@@ -158,7 +149,7 @@ int main() {
 		} else if(paddleX <= 0) { //Fixes wall collision
 			dx = 0; paddleX = 1;
 		}
-		
+
 		wait(0.005);	
 	}//End loop
 }//End main
