@@ -33,8 +33,9 @@ void timerHandler(); //prototype of handler function
 int tickCt = 0;
 /*************************************************************************/
 //Drawing coordinates
-int paddleY=262, paused=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, bounceCount=0, condition=0, gameStart=0,
-	paddleX, bX, ballX, ballY, randX, randBool, objX, objY, objWid, randMagicInt, randMagicDur;
+int paddleY=262, paused=0, bY=1, dx=0, ballsLeft=5, score=0, scoreIncrement=1, 
+	bounceCount=0, condition=0, gameStart=0, magicTime = 0, paddleX, bX, ballX, ballY, 
+  randX, randBool, objX, objY, objWid, randMagicInt, randMagicDur;
 
 int main() {
 	srand(time(0)); //Give ball random spawn loc based on time
@@ -104,6 +105,24 @@ int main() {
 			bY = bY*-1;
 		}
 		
+		if(tickCt == randMagicInt && magicTime != 1) { /***************************************/
+			tickCt = 0;
+			magicTime = 1;
+			scoreIncrement = scoreIncrement*2;
+		}
+		if (magicTime == 1) {
+				screen->fillCircle(ballX, ballY, 4, WHITE);
+				screen->fillCircle(ballX, ballY, 4, RED);
+			if(tickCt == randMagicDur) {
+				tickCt = 0;
+				magicTime = 0;
+				randMagicInt = (rand() % 5) + 5; randMagicDur = (rand() % 8) + 2;
+				screen->fillCircle(ballX, ballY, 4, WHITE);
+				screen->fillCircle(ballX, ballY, 4, BLUE);
+				scoreIncrement = scoreIncrement/2;
+			}
+		}
+		
 		if (ballY >= 277) { //If balls falls off screen
 			paused = 1;
 			screen->fillCircle(ballX, ballY, 4, WHITE);
@@ -111,8 +130,7 @@ int main() {
 			screen->fillRect(objX, objY, objWid, 2, WHITE);
 			if (ballsLeft <= 0) { //Reset game
 					if(jsPrsdAndRlsd(JCR)) {
-						paused = 0;
-						condition = 0;
+						paused = 0;condition = 0;tickCt=0;
 						score=0;scoreIncrement=1;bounceCount=0;						
 						ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;//Random ball spawn loc							
 						paddleX = (rand() % 460) + 10; dx = 0; //Random paddle spawn loc
@@ -128,11 +146,9 @@ int main() {
 					objX = (rand() % 370) + 10; objY = (rand() % 40) + 75; objWid = (rand() % 160) + 40;					
 					ballX = (rand() % 460) + 10; ballY = 30 + rand() % 40;	
 					paddleX = (rand() % 460) + 10; dx = 0;					
-					ballsLeft--;
-					condition = 0;
-					bounceCount = 0;
-					scoreIncrement = 1;
-					paused = 0;
+					ballsLeft--;tickCt=0;
+					randMagicInt = (rand() % 5) + 5; randMagicDur = (rand() % 8) + 2;
+					condition = 0;bounceCount = 0;scoreIncrement = 1;paused = 0;magicTime=0;
 				}
 			}
 		}
@@ -150,10 +166,11 @@ int main() {
 			dx = 0; paddleX = 1;
 		}
 
-		wait(0.005);	
+		wait(0.0025);	
 	}//End loop
 }//End main
 	/********************************************************************************/	
+
 
 bool accInit(MMA7455& acc) {
 	bool result = true;
