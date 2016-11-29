@@ -61,6 +61,8 @@ int main() {
 	ticktock.attach(&timerHandler, 1);
 	
 	while (true) {
+		screen->setCursor(20, 40);
+		screen->printf("Bounce: %d   ", bounceCount);
 		screen->setCursor(20, 7);
 		screen->printf("Lives: %d   ", ballsLeft); //Draw info
 		screen->setCursor(380, 7);
@@ -79,8 +81,8 @@ int main() {
 		screen->fillCircle(ballX, ballY, 5, BLUE);
 
 		screen->fillRect(paddleX, paddleY, 40, 4, WHITE);//Draw paddle
-		paddleX += dx; //PaddleDirection
-		//paddleX=ballX-20;//Cheats
+		//paddleX += dx; //PaddleDirection
+		paddleX=ballX-20;//Cheats
 		screen->fillRect(paddleX, paddleY, 40, 4, BLACK);
 		
 		screen->fillRect(objX, objY, objWid, 2, GREEN);
@@ -119,7 +121,12 @@ int main() {
 				randMagicInt = (rand() % 5) + 5; randMagicDur = (rand() % 8) + 2;
 				screen->fillCircle(ballX, ballY, 4, WHITE);
 				screen->fillCircle(ballX, ballY, 4, BLUE);
-				scoreIncrement = scoreIncrement/2;
+				if(scoreIncrement%2 == 0) {
+					scoreIncrement = scoreIncrement/2;
+				} else {
+					scoreIncrement = (scoreIncrement/2)+1;
+				}
+				
 			}
 		}
 		
